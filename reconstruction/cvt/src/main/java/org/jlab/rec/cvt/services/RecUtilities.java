@@ -1,6 +1,7 @@
 package org.jlab.rec.cvt.services;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import java.util.Map;
@@ -23,8 +24,10 @@ import org.jlab.clas.swimtools.Swim;
 import org.jlab.rec.cvt.bmt.BMTType;
 import org.jlab.rec.cvt.fit.CosmicFitter;
 import org.jlab.rec.cvt.track.StraightTrack;
+import org.jlab.rec.cvt.track.StraightTrackSeeder;
 import org.jlab.rec.cvt.track.TrackCandListFinder;
 import org.jlab.rec.cvt.track.TrackSeeder;
+import org.jlab.rec.cvt.track.TrackSeederCA;
 
 /**
  * Service to return reconstructed TRACKS
@@ -104,7 +107,7 @@ public class RecUtilities {
                 if(trkcand.get_Clusters().get(i).get_Layer()%2==1)
                     thickn_ov_X0 = org.jlab.rec.cvt.svt.Constants.SILICONTHICK / org.jlab.rec.cvt.svt.Constants.SILICONRADLEN;
                 meas.setl_over_X0(thickn_ov_X0);
-                if(Constants.getLayersUsed().get(meas.getLayer())==(Integer)0)
+                if((int)Constants.getLayersUsed().get(meas.getLayer())<1)
                     meas.notUsedInFit=true;
                 if(i>0 && KFSites.get(KFSites.size()-1).getLayer()==meas.getLayer())
                     continue;
@@ -142,8 +145,8 @@ public class RecUtilities {
                     //for multiple scattering
                     double thickn_ov_X0 = org.jlab.rec.cvt.bmt.Constants.get_T_OVER_X0()[(trkcand.get_Crosses().get(c).get_Cluster1().get_Layer() + 1) / 2 - 1];
                     meas.setl_over_X0(thickn_ov_X0);
-                    if(Constants.getLayersUsed().get(meas.getLayer())==(Integer)0) {
-                        //System.out.println("Exluding layer "+meas.getLayer());
+                    if((int)Constants.getLayersUsed().get(meas.getLayer())<1) {
+                        //System.out.println("Exluding layer "+meas.getLayer()+trkcand.get_Crosses().get(c).printInfo());
                         meas.notUsedInFit=true;
                     }
                     if(c>0 && KFSites.get(KFSites.size()-1).getLayer()==meas.getLayer())
@@ -164,8 +167,8 @@ public class RecUtilities {
                     //for multiple scattering
                     double thickn_ov_X0 = org.jlab.rec.cvt.bmt.Constants.get_T_OVER_X0()[(trkcand.get_Crosses().get(c).get_Cluster1().get_Layer() + 1) / 2 - 1];
                     meas.setl_over_X0(thickn_ov_X0);
-                    if(Constants.getLayersUsed().get(meas.getLayer())==(Integer)0) {
-                        //System.out.println("Exluding layer "+meas.getLayer());
+                    if((int)Constants.getLayersUsed().get(meas.getLayer())<1) {
+                        //System.out.println("Exluding layer "+meas.getLayer()+trkcand.get_Crosses().get(c).printInfo());
                         meas.notUsedInFit=true;
                     }
                     if(c>0 && KFSites.get(KFSites.size()-1).getLayer()==meas.getLayer())
@@ -365,87 +368,162 @@ public class RecUtilities {
         
     }
     
-    public List<Seed> reFit(List<Seed> seedlist,org.jlab.rec.cvt.svt.Geometry svt_geo,
-            Swim swimmer,  TrackSeeder trkseedr) {
+    public List<Seed> reFit(List<Seed> seedlist,
+            org.jlab.rec.cvt.svt.Geometry SVTGeom,
+            org.jlab.rec.cvt.bmt.BMTGeometry BMTGeom,
+            Swim swimmer,  StraightTrackSeeder trseed) {
         List<Seed> filtlist = new ArrayList<Seed>();
         if(seedlist==null)
             return filtlist;
         for (Seed bseed : seedlist) {
             if(bseed == null)
                 continue;
-            if(this.reFit(bseed, svt_geo, swimmer, trkseedr) == true) {
-                filtlist.add(bseed);
+            List<Seed>  fseeds = this.reFitSeed(bseed, SVTGeom, BMTGeom, trseed);
+            if(fseeds!=null) {
+                filtlist.addAll(fseeds);
             }
         }
         return filtlist;
-    }
-    public boolean reFit(Seed bseed, 
-            org.jlab.rec.cvt.svt.Geometry svt_geo,
-            Swim swimmer, TrackSeeder trkseedr) {
-        boolean pass = true;
+    }        
+    
+    public List<Seed> reFitSeed(Seed bseed, 
+            org.jlab.rec.cvt.svt.Geometry SVTGeom,
+            org.jlab.rec.cvt.bmt.BMTGeometry BMTGeom,
+            StraightTrackSeeder trseed) {
         
+        List<Seed> seedlist = new ArrayList<Seed>();
+        List<Cross> refib = new ArrayList<Cross>();
         List<Cross> refi = new ArrayList<Cross>();
         for(Cross c : bseed.get_Crosses()) {
             int layr = 0;
             int layr2 = 0;
             if(c.get_Detector().equalsIgnoreCase("BMT")) {
-                layr = c.get_Cluster1().get_Layer()+6;
-                if(org.jlab.rec.cvt.Constants.getLayersUsed().get(layr)!=(Integer)0)
-                    refi.add(c);
+                layr = c.getOrderedRegion()+3;
+                if((int)org.jlab.rec.cvt.Constants.getLayersUsed().get(layr)>0) {
+                    c.isInSeed = false;
+                //    System.out.println("refit "+c.printInfo());
+                    refib.add(c);
+                }
             } else {
                 layr = c.get_Cluster1().get_Layer();
                 layr2 = c.get_Cluster2().get_Layer();
-                if(org.jlab.rec.cvt.Constants.getLayersUsed().get(layr)!=(Integer)0 
-                        && org.jlab.rec.cvt.Constants.getLayersUsed().get(layr2)!=(Integer)0)
-                    refi.add(c);
+                if((int)org.jlab.rec.cvt.Constants.getLayersUsed().get(layr)>0 
+                        && (int)org.jlab.rec.cvt.Constants.getLayersUsed().get(layr2)>0) {
+                    c.set_CrossParamsSVT(null, SVTGeom);
+                    c.isInSeed = false;
+                    refi.add(c); 
+                }
             }
         }
-        Track cand = null;
-        if(refi.size()>=3) {
-            cand = trkseedr.fitSeed(refi, svt_geo, 5, false, swimmer);
-            if(cand!=null && cand.get_helix()!=null) {
-                bseed.set_Helix(cand.get_helix());
-            } else {
-                pass = false;
-            }
-        } else {
-            pass = false;
-        }
-        return pass;    
+        Collections.sort(refi);
+        seedlist.addAll(trseed.findSeed(refi, refib, SVTGeom, BMTGeom, false));
+        return seedlist;
     }
     
-    public List<StraightTrack> reFit(List<StraightTrack> seedlist, CosmicFitter fitTrk,  TrackCandListFinder trkfindr) {
+    public List<Seed> reFit(List<Seed> seedlist,
+            org.jlab.rec.cvt.svt.Geometry SVTGeom,
+            org.jlab.rec.cvt.bmt.BMTGeometry BMTGeom,
+            Swim swimmer,  TrackSeederCA trseed,  TrackSeeder trseed2) {
+        List<Seed> filtlist = new ArrayList<Seed>();
+        if(seedlist==null)
+            return filtlist;
+        for (Seed bseed : seedlist) {
+            if(bseed == null)
+                continue;
+            List<Seed>  fseeds = this.reFitSeed(bseed, SVTGeom, BMTGeom, swimmer, trseed, trseed2);
+            if(fseeds!=null) {
+                filtlist.addAll(fseeds);
+            }
+        }
+        return filtlist;
+    }
+    public List<Seed> reFitSeed(Seed bseed, 
+            org.jlab.rec.cvt.svt.Geometry SVTGeom,
+            org.jlab.rec.cvt.bmt.BMTGeometry BMTGeom,
+            Swim swimmer,  TrackSeederCA trseed,  TrackSeeder trseed2) {
+        boolean pass = true;
+
+        List<Seed> seedlist = new ArrayList<Seed>();
+        List<Cross> refib = new ArrayList<Cross>();
+        List<Cross> refi = new ArrayList<Cross>();
+        for(Cross c : bseed.get_Crosses()) {
+            int layr = 0;
+            int layr2 = 0;
+            if(c.get_Detector().equalsIgnoreCase("BMT")) {
+                layr = c.getOrderedRegion()+3;
+                if((int)org.jlab.rec.cvt.Constants.getLayersUsed().get(layr)>0) {
+                    c.isInSeed = false;
+                //    System.out.println("refit "+c.printInfo());
+                    refib.add(c);
+                }
+            } else {
+                layr = c.get_Cluster1().get_Layer();
+                layr2 = c.get_Cluster2().get_Layer();
+                if((int)org.jlab.rec.cvt.Constants.getLayersUsed().get(layr)>0 
+                        && (int)org.jlab.rec.cvt.Constants.getLayersUsed().get(layr2)>0) {
+                    c.set_CrossParamsSVT(null, SVTGeom);
+                    c.isInSeed = false;
+                   // System.out.println("refit "+c.printInfo());
+                    refi.add(c); 
+                }
+            }
+        }
+        Collections.sort(refi);
+        seedlist = trseed.findSeed(refi, refib, SVTGeom, BMTGeom, swimmer);
+        trseed2.unUsedHitsOnly = true;
+        seedlist.addAll( trseed2.findSeed(refi, refib, SVTGeom, BMTGeom, swimmer)); 
+        
+        return seedlist;
+    }
+    
+    public List<StraightTrack> reFit(List<StraightTrack> seedlist, 
+            org.jlab.rec.cvt.svt.Geometry SVTGeom,
+            CosmicFitter fitTrk,  TrackCandListFinder trkfindr) {
         List<StraightTrack> filtlist = new ArrayList<StraightTrack>();
         if(seedlist==null)
             return filtlist;
         for (StraightTrack bseed : seedlist) {
-            if(this.reFit(bseed, fitTrk, trkfindr) == true) {
-                filtlist.add(bseed);
+            if(bseed == null)
+                continue;
+            List<StraightTrack> fseeds = this.reFitSeed(bseed, SVTGeom, fitTrk, trkfindr);
+            if(fseeds!=null) {
+                filtlist.addAll(fseeds);
             }
         }
         return filtlist;
     }
     
-    public boolean reFit(StraightTrack cand, CosmicFitter fitTrk,  TrackCandListFinder trkfindr) {
+    
+    public List<StraightTrack> reFitSeed(StraightTrack cand, 
+            org.jlab.rec.cvt.svt.Geometry SVTGeom,
+            CosmicFitter fitTrk,  TrackCandListFinder trkfindr) {
         boolean pass = true;
+
+        List<StraightTrack> seedlist = new ArrayList<StraightTrack>();
+        List<Cross> refib = new ArrayList<Cross>();
         List<Cross> refi = new ArrayList<Cross>();
-        List<Cross> crosses = cand;
-        for(Cross c : crosses) {
+        for(Cross c : cand) {
             int layr = 0;
             int layr2 = 0;
             if(c.get_Detector().equalsIgnoreCase("BMT")) {
-                layr = c.get_Cluster1().get_Layer()+6;
-                if(org.jlab.rec.cvt.Constants.getLayersUsed().get(layr)!=(Integer)0)
-                    refi.add(c);
+                layr = c.getOrderedRegion()+3;
+                if((int)org.jlab.rec.cvt.Constants.getLayersUsed().get(layr)>0) {
+                    c.isInSeed = false;
+                //    System.out.println("refit "+c.printInfo());
+                    refib.add(c);
+                }
             } else {
                 layr = c.get_Cluster1().get_Layer();
                 layr2 = c.get_Cluster2().get_Layer();
-                if(org.jlab.rec.cvt.Constants.getLayersUsed().get(layr)!=(Integer)0 
-                        && org.jlab.rec.cvt.Constants.getLayersUsed().get(layr2)!=(Integer)0)
-                    refi.add(c);
+                if((int)org.jlab.rec.cvt.Constants.getLayersUsed().get(layr)>0 
+                        && (int)org.jlab.rec.cvt.Constants.getLayersUsed().get(layr2)>0) {
+                    c.set_CrossParamsSVT(null, SVTGeom);
+                    c.isInSeed = false;
+                   // System.out.println("refit "+c.printInfo());
+                    refi.add(c); 
+                }
             }
         }
-        
         if(refi.size()>=3) {
             TrackCandListFinder.RayMeasurements NewMeasArrays = trkfindr.
                 get_RayMeasurementsArrays((ArrayList<Cross>) refi, false, false);
@@ -454,13 +532,9 @@ public class RecUtilities {
                     NewMeasArrays._ErrY_prime, NewMeasArrays._ErrZ);
             if(fitTrk.get_ray()!=null) {
                 cand = new StraightTrack(fitTrk.get_ray());
-            } else {
-                pass = false;
+                seedlist.add(cand);
             }
-        } else {
-            pass = false;
         }
-        return pass;               
+        return seedlist;
     }
-    
 }
