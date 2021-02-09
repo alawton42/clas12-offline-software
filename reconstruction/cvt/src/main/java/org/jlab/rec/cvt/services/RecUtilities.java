@@ -237,7 +237,6 @@ public class RecUtilities {
             }
             if(Math.abs(clsDoca)<cls.get_CentroidError()*5){ //5sigma cut
                 clusMap.put(clsKey, cls);
-                System.out.println("Added to seed ");cls.printInfo();
             }
         }
         return clusMap;
@@ -401,7 +400,7 @@ public class RecUtilities {
                 layr = c.getOrderedRegion()+3;
                 if((int)org.jlab.rec.cvt.Constants.getLayersUsed().get(layr)>0) {
                     c.isInSeed = false;
-                //    System.out.println("refit "+c.printInfo());
+                    //System.out.println("refit "+c.printInfo());
                     refib.add(c);
                 }
             } else {
@@ -409,7 +408,7 @@ public class RecUtilities {
                 layr2 = c.get_Cluster2().get_Layer();
                 if((int)org.jlab.rec.cvt.Constants.getLayersUsed().get(layr)>0 
                         && (int)org.jlab.rec.cvt.Constants.getLayersUsed().get(layr2)>0) {
-                    c.set_CrossParamsSVT(null, SVTGeom);
+                    c.set_CrossParamsSVT(null, SVTGeom); 
                     c.isInSeed = false;
                     refi.add(c); 
                 }
@@ -532,6 +531,7 @@ public class RecUtilities {
                     NewMeasArrays._ErrY_prime, NewMeasArrays._ErrZ);
             if(fitTrk.get_ray()!=null) {
                 cand = new StraightTrack(fitTrk.get_ray());
+                cand.addAll(refi);
                 seedlist.add(cand);
             }
         }
