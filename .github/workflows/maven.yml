@@ -29,8 +29,8 @@ jobs:
       run: cd validation/advanced-tests && ./run-eb-tests.sh -100 electrongamma
     - name: eb-epc-test
       run: cd validation/advanced-tests && ./run-eb-tests.sh -100 electronprotonC
-    - name: eb-enc-test
-      run: cd validation/advanced-tests && ./run-eb-tests.sh -100 electronneutronC
+#    - name: eb-enc-test
+#      run: cd validation/advanced-tests && ./run-eb-tests.sh -100 electronneutronC
     - name: eb-eftpi-test
       run: cd validation/advanced-tests && ./run-eb-tests.sh -100 electronFTpion
 
