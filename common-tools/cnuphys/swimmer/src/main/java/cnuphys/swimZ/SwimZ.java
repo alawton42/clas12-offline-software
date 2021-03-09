@@ -123,7 +123,7 @@ public class SwimZ {
 			deriv = new SwimZDerivative();
 		}
 
-		setAbsoluteTolerance(1.0e-3);
+		setAbsoluteTolerance(1.0e-4);
 	}
 	
 	/**
