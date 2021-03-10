@@ -86,7 +86,7 @@ public class TracksFromTargetRec {
         
         for (Seed seed : seeds) { 
             org.jlab.clas.tracking.trackrep.Helix hlx = null ;
-
+            
             double xr =  -seed.get_Helix().get_dca()*Math.sin(seed.get_Helix().get_phi_at_dca());
             double yr =  seed.get_Helix().get_dca()*Math.cos(seed.get_Helix().get_phi_at_dca());
             double zr =  seed.get_Helix().get_Z0();
@@ -135,12 +135,12 @@ public class TracksFromTargetRec {
                     org.jlab.rec.cvt.Constants.getXb(), 
                     org.jlab.rec.cvt.Constants.getYb(),
                     shift, 
-                    recUtil.setMeasVecs(seed, SVTGeom)) ;
+                    recUtil.setMeasVecs(seed, SVTGeom, BMTGeom)) ;
                 kf.runFitter(swimmer);
                
                 if (kf.setFitFailed == false && kf.NDF>0) {
                     trkcands.add(recUtil.OutputTrack(seed, kf, SVTGeom, BMTGeom));
-                    trkcands.get(trkcands.size() - 1).set_TrackingStatus(2);
+                    trkcands.get(trkcands.size() - 1).set_TrackingStatus(seed.trkStatus);
                 }
             //} else {
                 //trkcands.add(recUtil.OutputTrack(seed));
@@ -163,7 +163,11 @@ public class TracksFromTargetRec {
 
         //System.out.println( " *** *** trkcands " + trkcands.size() + " * trks " + trks.size());
         trkFinder.removeOverlappingTracks(tracks); //turn off until debugged
-
+        // reset cross IDs
+        for(int a = 0; a<2; a++) {
+            for(Cross c : crosses.get(a))
+                c.set_AssociatedTrackID(-1);
+        }
         for (int c = 0; c < tracks.size(); c++) {
             tracks.get(c).set_Id(c + 1);
             for (int ci = 0; ci < tracks.get(c).size(); ci++) {

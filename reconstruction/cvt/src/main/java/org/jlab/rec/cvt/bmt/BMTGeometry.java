@@ -3,6 +3,7 @@ package org.jlab.rec.cvt.bmt;
 import javax.swing.JFrame;
 import org.jlab.detector.calib.utils.DatabaseConstantProvider;
 import org.jlab.geom.prim.Arc3D;
+import org.jlab.geom.prim.Cylindrical3D;
 import org.jlab.geom.prim.Line3D;
 import org.jlab.geom.prim.Point3D;
 import org.jlab.geom.prim.Vector3D;
@@ -12,7 +13,6 @@ import org.jlab.groot.group.DataGroup;
 import static org.jlab.rec.cvt.bmt.Constants.E_DRIFT_FF;
 import static org.jlab.rec.cvt.bmt.Constants.E_DRIFT_MF;
 import static org.jlab.rec.cvt.bmt.Lorentz.getLorentzAngle;
-import org.jlab.rec.cvt.services.CVTRecNewKF;
 
 /**
  *
@@ -355,6 +355,56 @@ public class BMTGeometry {
         
         return stripline;
     }
+    /**
+     * Returns Line3D for Z detector pseudostrip identified from region, sector, strip numbers, for ideal geometry
+     * After Loentz angle correction
+     * @param region
+     * @param sector
+     * @param strip
+     * @return Line3D
+     */
+    public Line3D getIdealLCZstrip(int region, int sector, int strip) {
+        
+        double radius = Constants.getCRZRADIUS()[region-1];
+        int layer = this.getLayer(region, BMTType.Z);
+        double zmin   = Constants.getCRCZMIN()[region-1];
+        double zmax   = Constants.getCRCZMAX()[region-1];
+        double angle  = Constants.getCRZPHI()[region-1][sector-1] - Constants.getCRZDPHI()[region-1][sector-1] 
+                      + ((double) strip-0.5) * Constants.getCRZWIDTH()[region-1] / Constants.getCRZRADIUS()[region-1];
+        double theLorentzCorrectedAngle = angle + this.LorentzAngleCorr(layer,sector);
+        Point3D p1= new Point3D(radius, 0, zmin);
+        p1.rotateZ(theLorentzCorrectedAngle);
+        Point3D p2= new Point3D(radius, 0, zmax);
+        p2.rotateZ(theLorentzCorrectedAngle);
+                
+        Line3D stripline = new Line3D(p1,p2);
+        
+        return stripline;
+    }
+    
+    /**
+     * Returns Line3D for Z detector pseudo-strip identified from region, sector, strip numbers, for real geometry
+     * After Lorentz angle correction
+     * @param region
+     * @param sector
+     * @param strip
+     * @return stripline
+     */
+    public Line3D getLCZstrip(int region, int sector, int strip) {
+        
+        int layer = this.getLayer(region, BMTType.Z);
+        Line3D stripline = this.getIdealLCZstrip(region, sector, strip);
+        
+        Point3D offset = this.getOffset(layer, sector);
+        Vector3D rotation = this.getRotation(layer, sector);
+        stripline.rotateX(rotation.x());
+        stripline.rotateY(rotation.y());
+        stripline.rotateZ(rotation.z());
+        stripline.translateXYZ(offset.x(),offset.y(),offset.z());
+                
+        
+        return stripline;
+    }
     
     /**
      * Return the C detector strip group
@@ -409,7 +459,7 @@ public class BMTGeometry {
             double zmin  = Constants.getCRCGRPZMIN()[region-1][group-1];     // group minimum z
             double pitch = Constants.getCRCWIDTH()[region-1][group-1];       // group pitch
             int    nmin  = Constants.getCRCGRPNMIN()[region-1][group-1];
-            z  = zmin + (strip - nmin + 0.5) * pitch;
+            z  = zmin + (strip - nmin + 0.5) * pitch ;
         }
         return z;
     }
@@ -460,6 +510,28 @@ public class BMTGeometry {
     }
    
     /**
+     * 
+     * @param layer
+     * @param sector
+     * @return rotated cylinder corresponding to the BMT surface
+     */
+    public Cylindrical3D getCylinder(int layer, int sector) {
+        Cylindrical3D cyl = new Cylindrical3D();
+        cyl.baseArc().setCenter(new Point3D(0, 0, 0));
+        cyl.highArc().setCenter(new Point3D(0, 0, 0));
+        cyl.baseArc().setNormal(new Vector3D(0,1,0));
+        cyl.highArc().setNormal(new Vector3D(0,1,0));
+        
+        Point3D    offset = this.getOffset(layer, sector);
+        Vector3D rotation = this.getRotation(layer, sector);
+        cyl.rotateX(rotation.x());
+        cyl.rotateY(rotation.y());
+        cyl.rotateZ(rotation.z());
+        cyl.translateXYZ(offset.x(),offset.y(),offset.z());
+        
+        return cyl;
+    }
+    /**
      * Return the sector number
      * @param layer [0-6]
      * @param angle angle in the local frame in radians
@@ -488,7 +560,8 @@ public class BMTGeometry {
             }
         } 
         if(!full) {
-            if(delta<Math.cos(this.getDPhi(layer, sector))) sector=0;
+            if(sector!=0)
+                if(delta<Math.cos(this.getDPhi(layer, sector))) sector=0;
         } 
         return sector;
     }
@@ -502,6 +575,7 @@ public class BMTGeometry {
         int layer=0;
         
         int sector = this.getSector(0, Math.atan2(traj.y(), traj.x()));
+        if(sector ==0) return 0;
         for(int i=1; i<=Constants.NLAYERS; i++) {
             double radius = Constants.axes[i-1][sector-1].distance(traj).length();
             if(Math.abs(radius-this.getRadius(i)-strip2Det)<accuracy) {
@@ -521,6 +595,7 @@ public class BMTGeometry {
         
         int sector = this.getSector(0, Math.atan2(traj.y(), traj.x())); 
         int layer  = this.getLayer(traj, strip2Det); 
+        if(sector ==0 || layer ==0) return false;
         return this.inDetector(layer, sector, traj);
     }
 
