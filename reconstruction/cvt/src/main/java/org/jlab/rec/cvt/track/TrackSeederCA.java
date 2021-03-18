@@ -412,7 +412,7 @@ public class TrackSeederCA {
     		List<Double> EZ= new ArrayList<Double>();
     		
     		for( Cross c : zrcross ) {
-    			R.add( org.jlab.rec.cvt.bmt.Constants.getCRCRADIUS()[c.get_Region() - 1] + org.jlab.rec.cvt.bmt.Constants.hStrip2Det );
+    			R.add( org.jlab.rec.cvt.bmt.Constants.getCRCRADIUS()[c.get_Region() - 1] + org.jlab.rec.cvt.bmt.Constants.gethStrip2Det() );
     			Z.add( c.get_Point().z() );
     			EZ.add( c.get_PointErr().z());
     		}
@@ -578,9 +578,9 @@ public class TrackSeederCA {
                 for (int j = svtSz * useSVTdipAngEst; j < svtSz * useSVTdipAngEst + bmtCSz; j++) {
                     Z.add(j, BMTCrossesC.get(j - svtSz * useSVTdipAngEst).get_Point().z());
                     Rho.add(j, org.jlab.rec.cvt.bmt.Constants.getCRCRADIUS()[BMTCrossesC.get(j - svtSz * useSVTdipAngEst).get_Region() - 1]
-                            + org.jlab.rec.cvt.bmt.Constants.hStrip2Det);
+                            + org.jlab.rec.cvt.bmt.Constants.gethStrip2Det());
                     
-                    ErrRho.add(j, org.jlab.rec.cvt.bmt.Constants.hStrip2Det / Math.sqrt(12.));
+                    ErrRho.add(j, org.jlab.rec.cvt.bmt.Constants.gethStrip2Det() / Math.sqrt(12.));
                     ErrZ.add(j, BMTCrossesC.get(j - svtSz * useSVTdipAngEst).get_PointErr().z());
                 }
             }

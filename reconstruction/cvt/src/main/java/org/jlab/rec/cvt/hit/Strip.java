@@ -6,15 +6,15 @@ import org.jlab.geom.prim.Point3D;
 import org.jlab.geom.prim.Vector3D;
 import org.jlab.rec.cvt.bmt.BMTGeometry;
 import org.jlab.rec.cvt.bmt.BMTType;
-import org.jlab.rec.cvt.bmt.Constants;
-import org.jlab.rec.cvt.bmt.Geometry;
 
 public class Strip {
 
-    public Strip(int strip, double edep) {
+    public Strip(int strip, double edep, double time) {
         this._Strip = strip;
         this._Edep = edep;
+        this._Time = time;
     }
+    
 
     private int _Strip;    	 							//	   strip read from daq 
     private int _LCStrip;								//     strip number taking into account Lorentz angle correction (for MM Z detectors)
@@ -26,7 +26,8 @@ public class Strip {
     private double _Z;    								//     for MM C-detectors. the z position at the strip midwidth
     private double _ZErr;
     private double _Edep;      							//     for simulation this corresponds to the energy deposited on the strip, in data it should be an ADC converted value
-
+    private double _Time;
+    
     private Point3D _ImplantPoint;						// 	   the end-point of the strip at implant (lab frame)
     private Point3D _MidPoint;							//	   the mid-point of the strip (lab frame)
     private Point3D _EndPoint;							//	   the end-point of the strip (lab frame)
@@ -134,6 +135,20 @@ public class Strip {
 
     public void set_Edep(double _Edep) {
         this._Edep = _Edep;
+    }
+
+    /**
+     * @return the _Time
+     */
+    public double get_Time() {
+        return _Time;
+    }
+
+    /**
+     * @param _Time the _Time to set
+     */
+    public void set_Time(double _Time) {
+        this._Time = _Time;
     }
 
     /**

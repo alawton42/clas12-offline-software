@@ -630,7 +630,7 @@ public class TrackCandListFinder {
 
         for (int j = shift + j0; j < shift + j0 + BMTCdetcrossesInTrk.size(); j++) {
             Z.add(j, BMTCdetcrossesInTrk.get(j - shift - j0).get_Point().z());
-            Rho.add(j, org.jlab.rec.cvt.bmt.Constants.getCRCRADIUS()[BMTCdetcrossesInTrk.get(j - shift - j0).get_Region() - 1] + org.jlab.rec.cvt.bmt.Constants.hStrip2Det);
+            Rho.add(j, org.jlab.rec.cvt.bmt.Constants.getCRCRADIUS()[BMTCdetcrossesInTrk.get(j - shift - j0).get_Region() - 1] + org.jlab.rec.cvt.bmt.Constants.gethStrip2Det());
             ErrRho.add(j, 0.01); // check this error on thickness measurement					
             ErrZ.add(j, BMTCdetcrossesInTrk.get(j - shift - j0).get_PointErr().z());
 
@@ -830,7 +830,7 @@ public class TrackCandListFinder {
 
         ArrayList<Cross> matchedMMCrosses = new ArrayList<Cross>();
 
-        double R = org.jlab.rec.cvt.bmt.Constants.getCRCRADIUS()[Region - 1] + org.jlab.rec.cvt.bmt.Constants.hDrift / 2;		     // R for C detector
+        double R = org.jlab.rec.cvt.bmt.Constants.getCRCRADIUS()[Region - 1] + org.jlab.rec.cvt.bmt.Constants.gethStrip2Det();		     // R for C detector
 
         double sx = ray.get_yxslope();
         double ix = ray.get_yxinterc();
@@ -901,7 +901,7 @@ public class TrackCandListFinder {
 
         ArrayList<Cross> matchedMMCrosses = new ArrayList<Cross>();
 
-        double R = org.jlab.rec.cvt.bmt.Constants.getCRZRADIUS()[Region - 1] + org.jlab.rec.cvt.bmt.Constants.hDrift / 2;		     // R for Z detector
+        double R = org.jlab.rec.cvt.bmt.Constants.getCRZRADIUS()[Region - 1] + org.jlab.rec.cvt.bmt.Constants.gethStrip2Det();		     // R for Z detector
         double sx = ray.get_yxslope();
         double ix = ray.get_yxinterc();
         double sz = ray.get_yzslope();

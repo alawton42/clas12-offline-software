@@ -175,10 +175,10 @@ public class TrajectoryFinder {
                 double R = 0;
 
                 if (BMTGeometry.getDetectorType(l + 1-6) == BMTType.Z) {
-                    R = org.jlab.rec.cvt.bmt.Constants.getCRZRADIUS()[BMTRegIdx] + org.jlab.rec.cvt.bmt.Constants.hStrip2Det;
+                    R = org.jlab.rec.cvt.bmt.Constants.getCRZRADIUS()[BMTRegIdx] + org.jlab.rec.cvt.bmt.Constants.gethStrip2Det();
                 }
                 if (BMTGeometry.getDetectorType(l + 1-6) == BMTType.C) {
-                    R = org.jlab.rec.cvt.bmt.Constants.getCRCRADIUS()[BMTRegIdx] + org.jlab.rec.cvt.bmt.Constants.hStrip2Det;
+                    R = org.jlab.rec.cvt.bmt.Constants.getCRCRADIUS()[BMTRegIdx] + org.jlab.rec.cvt.bmt.Constants.gethStrip2Det();
                 }
 
     //            swimmer.SetSwimParameters((trk.get_helix().xdca()+org.jlab.rec.cvt.Constants.getXb()) / 10, (trk.get_helix().ydca()+org.jlab.rec.cvt.Constants.getYb()) / 10, trk.get_helix().get_Z0() / 10, 
@@ -772,10 +772,10 @@ public class TrajectoryFinder {
         inters_bottom[3] = Double.NaN;
         double R = 0;
         if (BMTGeometry.getDetectorType(l + 1) == BMTType.C) {
-            R = org.jlab.rec.cvt.bmt.Constants.getCRCRADIUS()[l / 2] + org.jlab.rec.cvt.bmt.Constants.hStrip2Det;
+            R = org.jlab.rec.cvt.bmt.Constants.getCRCRADIUS()[l / 2] + org.jlab.rec.cvt.bmt.Constants.gethStrip2Det();
         }
         if (BMTGeometry.getDetectorType(l + 1) == BMTType.Z) {
-            R = org.jlab.rec.cvt.bmt.Constants.getCRZRADIUS()[l / 2] + org.jlab.rec.cvt.bmt.Constants.hStrip2Det;
+            R = org.jlab.rec.cvt.bmt.Constants.getCRZRADIUS()[l / 2] + org.jlab.rec.cvt.bmt.Constants.gethStrip2Det();
         }
         // solve for intersection of line with cylinder of radius R
         // x = _yxslope2*y +_yxinterc2; x^2+y^2 = R^2
@@ -789,7 +789,7 @@ public class TrajectoryFinder {
         double z_plus = _yzslope2 * y_plus + _yzinterc2;
         double z_minus = _yzslope2 * y_minus + _yzinterc2; 
         //if (geo.isInFiducial(x_plus, y_plus, z_plus, l + 1)) {
-        if(geo.inDetector(new Point3D(x_plus, y_plus, z_plus), org.jlab.rec.cvt.bmt.Constants.hStrip2Det)) { 
+        if(geo.inDetector(new Point3D(x_plus, y_plus, z_plus), org.jlab.rec.cvt.bmt.Constants.gethStrip2Det())) { 
             inters_top[0] = x_plus;
             inters_top[1] = y_plus;
             inters_top[2] = z_plus;
@@ -805,7 +805,7 @@ public class TrajectoryFinder {
             }
         }
         //if (geo.isInFiducial(x_minus, y_minus, z_minus, l + 1)) {
-        if(geo.inDetector(new Point3D(x_minus, y_minus, z_minus), org.jlab.rec.cvt.bmt.Constants.hStrip2Det)) { 
+        if(geo.inDetector(new Point3D(x_minus, y_minus, z_minus), org.jlab.rec.cvt.bmt.Constants.gethStrip2Det())) { 
             inters_bottom[0] = x_minus;
             inters_bottom[1] = y_minus;
             inters_bottom[2] = z_minus;

@@ -774,7 +774,7 @@ public class BMTGeometry {
      * @return 
      */
     public double LorentzAngleCorr(int layer, int sector) {
-        return (this.getThickness()/2 * Math.tan(this.getThetaLorentz(layer, sector))) / this.getRadius(layer);
+        return (Constants.gethStrip2Det() * Math.tan(this.getThetaLorentz(layer, sector))) / this.getRadius(layer);
     }
 
 
@@ -1133,7 +1133,7 @@ public class BMTGeometry {
 //        int num_region = (int) (layer + 1) / 2 - 1; // region index (0...2) 0=layers 1&2, 1=layers 3&4, 2=layers 5&6
 //        //return phi +( Constants.hDrift/2*Math.tan(Constants.getThetaL()) )/Constants.getCRZRADIUS()[num_region];
 //        //return phi + (Constants.hDrift * Math.tan(Constants.getThetaL())) / (Constants.getCRZRADIUS()[num_region]);
-//        return phi + (Constants.hStrip2Det * Math.tan(Constants.getThetaL())) / (Constants.getCRZRADIUS()[num_region]);
+//        return phi + (Constants.gethStrip2Det() * Math.tan(Constants.getThetaL())) / (Constants.getCRZRADIUS()[num_region]);
 //    }
 //    
 //    /**
