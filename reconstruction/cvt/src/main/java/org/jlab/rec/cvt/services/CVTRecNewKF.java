@@ -69,7 +69,6 @@ public class CVTRecNewKF extends ReconstructionEngine {
         boolean isMC = false;
         boolean isCosmics = false;
         DataBank bank = event.getBank("RUN::config");
-        //System.out.println("EVENTNUM "+bank.getInt("event",0));
         if (bank.getByte("type", 0) == 0) {
             isMC = true;
         }

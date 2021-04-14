@@ -7,7 +7,6 @@ import org.jlab.rec.cvt.hit.FittedHit;
 import org.jlab.rec.cvt.hit.Hit;
 
 import java.util.Collections;
-import java.util.Comparator;
 import org.jlab.rec.cvt.bmt.Constants;
 /**
  * A cluster in the BST consists of an array of hits that are grouped together
@@ -243,9 +242,12 @@ public class Cluster extends ArrayList<FittedHit> implements Comparable<Cluster>
                         Point3D stEP2 = thehit.get_Strip().get_EndPoint();
                         weightedX1 += strpEn * stEP1.x();
                         weightedY1 += strpEn * stEP1.y();
+                        weightedZ1 += strpEn * stEP1.z();
                         weightedX2 += strpEn * stEP2.x();
                         weightedY2 += strpEn * stEP2.y();
+                        weightedZ2 += strpEn * stEP2.z();
                     }
+                    
                     totEn += strpEn;
                     weightedStrp += strpEn * (double) strpNb;
                     weightedStrp0 += strpEn * (double) strpNb0;

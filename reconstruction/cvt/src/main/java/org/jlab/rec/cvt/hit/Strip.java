@@ -175,20 +175,28 @@ public class Strip {
         }
 
         if (BMTGeometry.getDetectorType(layer) == BMTType.Z) { // Z-detectors
+            //Line3D L0 = geo.getZstrip(geo.getRegion(layer), sector, this.get_Strip());
+            Line3D L = geo.getLCZstrip(geo.getRegion(layer), sector, this.get_Strip());
+            this.set_ImplantPoint(L.origin());  
+            this.set_MidPoint(L.midpoint());
+            this.set_EndPoint(L.end());
+            this.set_StripDir(L.direction());
+            
             double theMeasuredPhi = geo.CRZStrip_GetPhi(sector, layer, this.get_Strip());
-            double theLorentzCorrectedAngle = theMeasuredPhi + geo.LorentzAngleCorr(layer,sector);
+            double theLorentzCorrectedAngle = L.midpoint().toVector3D().phi(); 
             // set the phi 
             this.set_Phi(theLorentzCorrectedAngle);
             this.set_Phi0(theMeasuredPhi); // uncorrected
             //System.out.println(" sec "+sector+" strip "+this.get_Strip()+" LC strip "+geo.getZStrip(layer, theLorentzCorrectedAngle));
             //int theLorentzCorrectedStrip = geo.getZStrip(layer, theLorentzCorrectedAngle);
             int num_region = (int) (layer + 1) / 2 - 1; // region index (0...2) 0=layers 1&2, 1=layers 3&4, 2=layers 5&6double Z0=0;           
-            double xl = org.jlab.rec.cvt.bmt.Constants.getCRZRADIUS()[num_region]*
-                    Math.cos(theLorentzCorrectedAngle);
-            double yl = org.jlab.rec.cvt.bmt.Constants.getCRZRADIUS()[num_region]*
-                    Math.sin(theLorentzCorrectedAngle);
-            int theLorentzCorrectedStrip = geo.getStrip( layer,  sector, 
-                    new Point3D(xl,yl,0));
+//            double xl = org.jlab.rec.cvt.bmt.Constants.getCRZRADIUS()[num_region]*
+//                    Math.cos(theLorentzCorrectedAngle);
+//            double yl = org.jlab.rec.cvt.bmt.Constants.getCRZRADIUS()[num_region]*
+//                    Math.sin(theLorentzCorrectedAngle);
+//            int theLorentzCorrectedStrip = geo.getStrip( layer,  sector, 
+//                    new Point3D(xl,yl,0));
+            int theLorentzCorrectedStrip = geo.getStrip( layer,  sector, L.midpoint());
             // get the strip number after correcting for Lorentz angle
             this.set_LCStrip(theLorentzCorrectedStrip);
 
@@ -202,12 +210,7 @@ public class Strip {
             //System.out.println("arcerr "+org.jlab.rec.cvt.bmt.Constants.getCRZRADIUS()[num_region]+" * "+Math.toDegrees(sigma/org.jlab.rec.cvt.bmt.Constants.getCRZRADIUS()[num_region]));
             this.set_PhiErr0(phiErr);
             
-            //Line3D L0 = geo.getZstrip(geo.getRegion(layer), sector, this.get_Strip());
-            Line3D L = geo.getLCZstrip(geo.getRegion(layer), sector, this.get_Strip());
-            this.set_ImplantPoint(L.origin());  
-            this.set_MidPoint(L.midpoint());
-            this.set_EndPoint(L.end());
-            this.set_StripDir(L.direction());
+            
         }
 
     }

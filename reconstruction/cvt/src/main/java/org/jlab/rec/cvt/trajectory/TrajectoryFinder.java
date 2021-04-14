@@ -332,7 +332,7 @@ public class TrajectoryFinder {
         ArrayList<Cross> SVTCrossList = new ArrayList<Cross>();
         ArrayList<Cross> BMTCrossList = new ArrayList<Cross>();
 
-        for (Cross c : candCrossList) {
+        for (Cross c : candCrossList) { 
             if (c.get_Detector().equalsIgnoreCase("SVT")) {
                 SVTCrossList.add(c); 
             } else {
@@ -442,13 +442,13 @@ public class TrajectoryFinder {
                         }
                         if (c.get_DetectorType()==BMTType.C) { //C-detector measuring Z
                             //if(traj.isFinal) { // reset the cross only for final trajectory
-
+                        
                             c.set_Point(new Point3D(XtrackIntersSurf, YtrackIntersSurf, c.get_Point().z()));
                             c.set_Dir(ray.get_dirVec());
                             //}
 
                             // calculate the hit residuals // CHECK THIS ........
-                            this.setHitResolParams("BMT", c.get_Sector(), c.get_Cluster2().get_Layer(), c.get_Cluster2(),
+                            this.setHitResolParams("BMT", c.get_Sector(), c.get_Cluster1().get_Layer(), c.get_Cluster1(),
                                     stVec, svt_geo, bmt_geo, traj.isFinal);
 
                         }
@@ -480,51 +480,73 @@ public class TrajectoryFinder {
     }
 
     private boolean matchCrossToStateVec(Cross c, StateVec stVec, int layer, int sector) {
-        boolean value = false;
+        
         if (c.get_Detector().equalsIgnoreCase("SVT")) {
             int l = layer - 1;
-            value = true;
             if (c.get_Region() != (int) (l / 2) + 1) {
-                value = false;	// require same region
+                return false;	// require same region
             }
             if (c.get_Sector() != sector) {
-                value = false;		// same sector 
+                return false;		// same sector 
             } 
             double deltaXt = Math.sqrt((stVec.x() - c.get_Point().x()) * (stVec.x() - c.get_Point().x()) + (stVec.y() - c.get_Point().y()) * (stVec.y() - c.get_Point().y()));
             if (deltaXt > org.jlab.rec.cvt.svt.Constants.ACTIVESENWIDTH / 2) {
-                value = false; // within 1/2 module width
+                return false; // within 1/2 module width
             }
-            
+            //return true;
         }
 
         if (c.get_Detector().equalsIgnoreCase("BMT")) { // BMT
-            value = true;
+            
             //int l = layer - 9;
-            int l = layer - 7;
+            int l = layer - 1;
             if (c.get_Region() != (int) (l / 2) + 1) {
-                value = false;	// reauire same region
+                return false;	// require same region
             }
             if (c.get_DetectorType()==BMTType.C) { //C-detector measuring Z
                 if (BMTGeometry.getDetectorType(layer) == BMTType.Z) { //Z-detector measuring phi
-                    value = false;
+                    return false;
                 }
-            	
-                if (Math.abs(stVec.z() - c.get_Point0().z()) > Constants.TOLTOMODULELEN) {
-                    value = false;
+                
+                double R = org.jlab.rec.cvt.bmt.Constants.getCRCRADIUS()[c.get_Region()-1] + org.jlab.rec.cvt.bmt.Constants.gethStrip2Det();
+            	double deltaR = Math.abs(Math.sqrt(stVec.x()*stVec.x()+stVec.y()*stVec.y())-R);
+                
+                //if (Math.abs(stVec.z() - c.get_Point0().z()) > Constants.TOLTOMODULELEN) {
+                //    value = false;
+                //}
+               
+                if (deltaR > 0.0001) {
+                    return false;
                 }
+                if(Math.signum(c.get_Point().y()) != Math.signum(stVec.y())) {
+                    return false;
+                }
+               
+                return true;
             }
             if (c.get_DetectorType()==BMTType.Z) { //Z-detector measuring phi
                 if (BMTGeometry.getDetectorType(layer) == BMTType.C) { //C-detector 
-                    value = false;
+                    return false;
                 }
-                double deltaXt = Math.sqrt((stVec.x() - c.get_Point().x()) * (stVec.x() - c.get_Point().x()) + (stVec.y() - c.get_Point().y()) * (stVec.y() - c.get_Point().y()));
-                if (deltaXt > 2*Constants.TOLTOMODULELEN) {
-                    value = false;
+                
+                //double deltaXt = Math.sqrt((stVec.x() - c.get_Point().x()) * (stVec.x() - c.get_Point().x()) + (stVec.y() - c.get_Point().y()) * (stVec.y() - c.get_Point().y()));
+                //if (deltaXt > 2*Constants.TOLTOMODULELEN) {
+                //    value = false;
+                //}
+                double R = org.jlab.rec.cvt.bmt.Constants.getCRZRADIUS()[c.get_Region()-1] + org.jlab.rec.cvt.bmt.Constants.gethStrip2Det();
+            	double deltaR = Math.abs(Math.sqrt(stVec.x()*stVec.x()+stVec.y()*stVec.y())-R);
+                
+                if (deltaR > 0.0001){ 
+                    return false;
                 }
+                if(Math.signum(c.get_Point().y()) != Math.signum(stVec.y())) {
+                    return false;
+                }
+                
+                //return true;
             }
         }
-
-        return value;
+        return true;
     }
 
     /**
@@ -561,12 +583,15 @@ public class TrajectoryFinder {
         }
         if (detector.equalsIgnoreCase("BMT")) {
             if (BMTGeometry.getDetectorType(layer) == BMTType.C) { //C-detector measuring z
+                double doca2Cls = stVec.z() -cluster.get_Z();
+                cluster.set_CentroidResidual(doca2Cls); 
                 for (FittedHit h1 : cluster) {
                     // calculate the hit residuals
-                    double docaToTrk = stVec.z() - h1.get_Strip().get_Z();
-                    double doca2Cls = stVec.z() -cluster.get_Z();
+                    double doca1 = stVec.z() - h1.get_Strip().get_Z();
                     double stripResol = h1.get_Strip().get_ZErr();
-                    h1.set_docaToTrk(docaToTrk);
+                    h1.set_docaToTrk(doca1);
+                    if(h1.get_Strip().get_Strip()==cluster.get_SeedStrip())
+                        cluster.set_SeedResidual(doca1);
                     h1.set_stripResolutionAtDoca(stripResol);
                     h1.set_TrkgStatus(1);
                     if (trajFinal) {
@@ -575,16 +600,36 @@ public class TrajectoryFinder {
                 }
             }
             if (BMTGeometry.getDetectorType(layer) == BMTType.Z) { //Z-detector measuring phi
-                // calculate the hit residuals
-                for (FittedHit h1 : cluster) {
-                    double StripX = org.jlab.rec.cvt.bmt.Constants.getCRZRADIUS()[(cluster.get_Layer() + 1) / 2 - 1] * Math.cos(h1.get_Strip().get_Phi());
-                    double StripY = org.jlab.rec.cvt.bmt.Constants.getCRZRADIUS()[(cluster.get_Layer() + 1) / 2 - 1] * Math.sin(h1.get_Strip().get_Phi());
+                Line3D l = new Line3D(cluster.getEndPoint1(), 
+                                          cluster.getEndPoint2()); 
+                Point3D p = new Point3D(stVec.x(), stVec.y(), stVec.z());
+                Line3D WL = new Line3D();
+                WL.copy(l);
+                WL.copy(WL.distance(p));
 
-                    double Sign = Math.signum(Math.atan2(StripY - stVec.y(), StripX - stVec.x()));
-                    double docaToTrk = org.jlab.rec.cvt.bmt.Constants.getCRZRADIUS()[(cluster.get_Layer() + 1) / 2 - 1] *Math.atan2(stVec.y(), stVec.x())- h1.get_Strip().get_Phi();
-                    double doca2Cls =  org.jlab.rec.cvt.bmt.Constants.getCRZRADIUS()[(cluster.get_Layer() + 1) / 2 - 1] *Math.atan2(stVec.y(), stVec.x())- cluster.get_Phi();
+                double phi = Math.atan2(p.y(), p.x()) + Math.PI;
+                double phim = Math.atan2(cluster.getEndPoint1().y(),
+                                         cluster.getEndPoint1().x()) + Math.PI;
+                double doca2Cls = WL.length()*Math.signum(phi-phim);
+
+                cluster.set_CentroidResidual(doca2Cls); 
+                for (FittedHit h1 : cluster) {
+                    l = new Line3D(h1.get_Strip().get_ImplantPoint(), 
+                                       h1.get_Strip().get_EndPoint());
+                    WL = new Line3D();
+                    WL.copy(l);
+                    WL.copy(WL.distance(p));
+
+                    phi = Math.atan2(p.y(), p.x()) + Math.PI;
+                    phim = Math.atan2(h1.get_Strip().get_ImplantPoint().y(),
+                                         h1.get_Strip().get_ImplantPoint().x()) + Math.PI;
+
+                    double doca1 = WL.length()*Math.signum(phi-phim);
+
+                    if(h1.get_Strip().get_Strip()==cluster.get_SeedStrip())
+                        cluster.set_SeedResidual(doca1); 
                     double stripResol = h1.get_Strip().get_PhiErr();
-                    h1.set_docaToTrk(docaToTrk);
+                    h1.set_docaToTrk(doca1);
                     h1.set_stripResolutionAtDoca(stripResol);
                     h1.set_TrkgStatus(1);
                     if (trajFinal) {
@@ -613,7 +658,7 @@ public class TrajectoryFinder {
 
             //hemisphere 1-2
             for (int h = 0; h < 2; h++) {
-                double[] trkIntersInf = trkIntersCombinedInf[0];
+                double[] trkIntersInf = trkIntersCombinedInf[h];
                 
                 if(Double.isNaN(trkIntersInf[0]) || Double.isNaN(trkIntersInf[1]) || Double.isNaN(trkIntersInf[2]) )
                     continue;
@@ -777,6 +822,7 @@ public class TrajectoryFinder {
         if (BMTGeometry.getDetectorType(l + 1) == BMTType.Z) {
             R = org.jlab.rec.cvt.bmt.Constants.getCRZRADIUS()[l / 2] + org.jlab.rec.cvt.bmt.Constants.gethStrip2Det();
         }
+        
         // solve for intersection of line with cylinder of radius R
         // x = _yxslope2*y +_yxinterc2; x^2+y^2 = R^2
         double Delta = _yxslope2 * _yxslope2 * _yxinterc2 * _yxinterc2 + (R * R - _yxinterc2 * _yxinterc2) * (_yxslope2 * _yxslope2 + 1);

@@ -66,7 +66,7 @@ public class Lorentz {
                 return y;
 
             y = ya*(xb - x)/(xb - xa) + yb*(x - xa)/(xb - xa);
-
+            
             return y;
 		  
 	}
