@@ -12,6 +12,7 @@ import org.jlab.clas.pdg.PhysicsConstants;
 import org.jlab.clas.swimtools.Swim;
 import org.jlab.clas.tracking.kalmanfilter.helical.MeasVecs.MeasVec;
 import org.jlab.clas.tracking.trackrep.Helix;
+import org.jlab.geom.prim.Line3D;
 
 
 public class StateVecs {
@@ -196,7 +197,8 @@ public class StateVecs {
                 } else {
 
                     this.setTrackPars(kVec, swim);
-                    swimPars = swim.SwimRho(r/units);
+                    //swimPars = swim.SwimRho(r/units);
+                    swimPars = this.SwimToCylinder(kVec, swim, r/units);
                     if(swimPars==null)
                         return null;
                     for(int j =0; j < 3; j++) {
@@ -502,6 +504,23 @@ public class StateVecs {
                         z0/units,
                         px0, py0, pz0, ch);
     }
+    private void setReverseTrackPars(StateVec kVec, Swim swim) {
+
+        double x0 = X0.get(kVec.k) + kVec.d_rho * Math.cos(kVec.phi0) ;
+        double y0 = Y0.get(kVec.k) + kVec.d_rho * Math.sin(kVec.phi0) ;
+        double z0 = Z0.get(kVec.k) + kVec.dz ;
+        double invKappa = 1. / Math.abs(kVec.kappa);
+        double px0 = -invKappa * Math.sin(kVec.phi0 );
+        double py0 = invKappa * Math.cos(kVec.phi0 );
+        double pz0 = invKappa * kVec.tanL;
+        int ch = (int) KFitter.polarity*(int) Math.signum(kVec.kappa);
+
+        swim.SetSwimParameters(
+                        x0/units,
+                        y0/units,
+                        z0/units,
+                        -px0, -py0, -pz0, -ch);
+    }
 
     private double calcPhi(StateVec kVec) {
         double xc = X0.get(kVec.k) + (kVec.d_rho + kVec.alpha / kVec.kappa) * Math.cos(kVec.phi0);
@@ -535,6 +554,43 @@ public class StateVecs {
             kVec.z = ps.z();
             this.tranState(k, kVec, swim);
         }
+    }
+
+    private double[] SwimToCylinder(StateVec kVec, Swim swim, double d) {
+        
+        double[] swimPars = swim.SwimRho(d);
+        if(swimPars==null)
+            return null;
+        Vector3D p = new Vector3D(swimPars[0],swimPars[1],swimPars[2]);
+        Vector3D u = new Vector3D(swimPars[3],swimPars[4],swimPars[5]);
+        int ch = (int) KFitter.polarity*(int) Math.signum(kVec.kappa);
+        double res = Math.signum(d-p.rho());
+        double tar = d+res;
+        
+        double[] swimTar = swim.SwimRho(tar);
+        Point3D pTar = new Point3D(swimTar[0],swimTar[1],swimTar[2]);
+        Vector3D uTar = new Vector3D(pTar.x()-p.x(), pTar.y()-p.y(), pTar.z()-p.z()).asUnit();
+        if(uTar.rho()==0)
+            uTar = u.asUnit();
+        
+        double b = p.x()*uTar.x()+p.y()*uTar.y();
+        double c = -d*d+p.x()*p.x()+p.y()*p.y();
+        double a = uTar.x()*uTar.x()+uTar.y()*uTar.y();
+        
+        double D = b*b - a*c;
+        double v1 = (-b-Math.sqrt(D))/a;
+        double v2 = (-b+Math.sqrt(D))/a;
+        
+        double v = 0;
+        if(Math.abs(v1)<Math.abs(v2)) {
+            v = v1;
+        } else {
+            v = v2;
+        }
+        uTar.scale(v);
+       
+        return new double[]{p.x()+uTar.x(),p.y()+uTar.y(),p.z()+uTar.z()};  
+        
     }
 
     public class StateVec {
