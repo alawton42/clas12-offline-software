@@ -117,7 +117,7 @@ public class CCDBConstantsLoader {
         // target position
         double ztarget = dbprovider.getDouble("/geometry/target/position", 0);
         
-//        System.out.println(" ................READ TARGET SHIFT "+ztarget+" cm......."); 
+        System.out.println(" ................READ TARGET SHIFT "+ztarget+" cm......."); 
       //  dbprovider.show();
         // Getting the Constants
         // 1) pitch info 

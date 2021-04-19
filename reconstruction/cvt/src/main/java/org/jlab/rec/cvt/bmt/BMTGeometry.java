@@ -766,7 +766,7 @@ public class BMTGeometry {
             thetaL = 0;
         }
         else {
-            if(Math.abs(solenoidScale)<0.8) {
+            if(Math.abs(solenoidScale)<0.8) { 
                 thetaL = Math.toRadians(getLorentzAngle(Constants.E_DRIFT_MF[layer-1][sector-1],Math.abs(solenoidScale*50)));
             } else {
                 thetaL = Math.toRadians(getLorentzAngle(Constants.E_DRIFT_FF[layer-1][sector-1],Math.abs(solenoidScale*50)));

@@ -38,6 +38,7 @@
     <module>swim-tools</module>
     <module>clas-math</module>
     <module>clas-tracking</module>
+    <module>clara-io</module>
 
   </modules>
 </project>

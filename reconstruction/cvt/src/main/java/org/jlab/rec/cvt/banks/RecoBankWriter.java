@@ -123,7 +123,7 @@ public class RecoBankWriter {
         }
 
         DataBank bank = event.createBank("BSTRec::Crosses", crosses.get(0).size());
-
+        
         int index = 0;
         int i = 0;
         for (int j = 0; j < crosses.get(i).size(); j++) {
