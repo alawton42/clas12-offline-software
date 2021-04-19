@@ -9,7 +9,7 @@ public class Constants {
     private Constants() {
 
     }
-    public static boolean newClustering = true;
+    public static boolean newClustering = false;
 
     /*
  * The algorithm to describe the geometry of the Barrel Micromegas is provided by Franck Sabatie and implemented into the Java framework.
