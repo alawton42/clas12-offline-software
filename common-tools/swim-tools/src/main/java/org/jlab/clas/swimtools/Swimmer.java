@@ -105,7 +105,7 @@ public class Swimmer {
         FieldsLoaded = true;
         System.out.println(" TRACKING ***** ****** ****** THE TORUS IS BEING SCALED BY " + (TorusScale * 100) + "  %   *******  ****** **** ");
         System.out.println(" TRACKING ***** ****** ****** THE SOLENOID IS BEING SCALED BY " + (SolenoidScale * 100) + "  %   *******  ****** **** ");   
-        System.out.println(" TRACKING ***** ****** ****** THE SOLENOID IS BEING SHIFTED BY " + Sz + "  CM   *******  ****** **** ");   
+        System.out.println(" TRACKING ***** ****** ****** THE SOLENOID IS BEING SHIFTED BY " + Sz + "   CM   *******  ****** **** ");   
     }
 
     private static double SOLSCALE = -1;
