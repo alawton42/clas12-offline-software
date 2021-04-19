@@ -197,8 +197,8 @@ public class StateVecs {
                 } else {
 
                     this.setTrackPars(kVec, swim);
-                    //swimPars = swim.SwimRho(r/units);
-                    swimPars = this.SwimToCylinder(kVec, swim, r/units);
+                    swimPars = swim.SwimRho(r/units);
+                    //swimPars = this.SwimToCylinder(kVec, swim, r/units);
                     if(swimPars==null)
                         return null;
                     for(int j =0; j < 3; j++) {
