@@ -66,7 +66,7 @@ public class TracksFromTargetRec {
                 TrackSeederCA trseed = new TrackSeederCA();  // cellular automaton seeder
                 seeds = trseed.findSeed(crosses.get(0), crosses.get(1), SVTGeom, BMTGeom, swimmer);
                 //second seeding algorithm to search for SVT only tracks, and/or tracks missed by the CA
-                
+           
                 TrackSeeder trseed2 = new TrackSeeder();
                 trseed2.unUsedHitsOnly = true;
                 seeds.addAll( trseed2.findSeed(crosses.get(0), crosses.get(1), SVTGeom, BMTGeom, swimmer)); 
@@ -136,9 +136,8 @@ public class TracksFromTargetRec {
                     org.jlab.rec.cvt.Constants.getYb(),
                     shift, 
                     recUtil.setMeasVecs(seed, SVTGeom, BMTGeom)) ;
-                kf.runFitter(swimmer);
-               
-                if (kf.setFitFailed == false && kf.NDF>0) {
+                kf.runFitter(swimmer); 
+                if (kf.setFitFailed == false && kf.NDF>0 && kf.KFHelix!=null) { 
                     Track fittedTrack = recUtil.OutputTrack(seed, kf, SVTGeom, BMTGeom);
                     for(Cross c : fittedTrack) { 
                         if(c.get_Detector().equalsIgnoreCase("SVT")) {
@@ -149,13 +148,15 @@ public class TracksFromTargetRec {
                     //refit adding missing clusters
                     List<Cluster> clsOnTrack = recUtil.FindClustersOnTrk(SVTclusters, fittedTrack.get_helix(), 
                             fittedTrack.get_P(), fittedTrack.get_Q(), SVTGeom, swimmer);
-                    seed.get_Clusters().addAll(clsOnTrack);
-                    kf = new org.jlab.clas.tracking.kalmanfilter.helical.KFitter( hlx, cov, event,  swimmer, 
-                    org.jlab.rec.cvt.Constants.getXb(), 
-                    org.jlab.rec.cvt.Constants.getYb(),
-                    shift, 
-                    recUtil.setMeasVecs(seed, SVTGeom, BMTGeom)) ;
-                    kf.runFitter(swimmer);
+                    if(clsOnTrack.size()>0) {
+                        seed.get_Clusters().addAll(clsOnTrack);
+                        kf = new org.jlab.clas.tracking.kalmanfilter.helical.KFitter( hlx, cov, event,  swimmer, 
+                        org.jlab.rec.cvt.Constants.getXb(), 
+                        org.jlab.rec.cvt.Constants.getYb(),
+                        shift, 
+                        recUtil.setMeasVecs(seed, SVTGeom, BMTGeom)) ;
+                        kf.runFitter(swimmer); 
+                    }
                     trkcands.add(recUtil.OutputTrack(seed, kf, SVTGeom, BMTGeom));
                     trkcands.get(trkcands.size() - 1).set_TrackingStatus(seed.trkStatus);
                 }
@@ -175,11 +176,14 @@ public class TracksFromTargetRec {
         //This last part does ELoss C
         TrackListFinder trkFinder = new TrackListFinder();
         List<Track> tracks = trkFinder.getTracks(trkcands, SVTGeom, BMTGeom, CTOFGeom, CNDGeom, swimmer);
+
         for( int i=0;i<tracks.size();i++) { 
-            tracks.get(i).set_Id(i+1);         }
+            tracks.get(i).set_Id(i+1);         
+        }
 
         //System.out.println( " *** *** trkcands " + trkcands.size() + " * trks " + trks.size());
         trkFinder.removeOverlappingTracks(tracks); //turn off until debugged
+
         // reset cross IDs
         for(int a = 0; a<2; a++) {
             for(Cross c : crosses.get(a))
@@ -241,12 +245,10 @@ public class TracksFromTargetRec {
                         c.set_Dir( new Vector3D(0,0,0));
                         c.set_DirErr( new Vector3D(0,0,0));
                         if( c.get_DetectorType()==BMTType.C) {
-    //        			System.out.println(c + " " + c.get_AssociatedTrackID());
-                                c.set_Point(new Point3D(Double.NaN,Double.NaN,c.get_Point().z()));
-    //        			System.out.println(c.get_Point());
+                            c.set_Point(new Point3D(Double.NaN,Double.NaN,c.get_Point().z()));
                         }
                         else {
-                                c.set_Point(new Point3D(c.get_Point().x(),c.get_Point().y(),Double.NaN));
+                            c.set_Point(new Point3D(c.get_Point().x(),c.get_Point().y(),Double.NaN));
                         }
                 }
         }

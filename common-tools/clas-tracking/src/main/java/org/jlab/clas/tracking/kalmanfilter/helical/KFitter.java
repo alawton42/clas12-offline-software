@@ -313,8 +313,8 @@ public class KFitter {
                 sv.trackTraj.get(k).y = fVec.y;
                 sv.trackTraj.get(k).z = fVec.z;  
             } else {
-                this.NDF--;
-                mv.measurements.get(k).skip = true;
+                //this.NDF--;
+                //mv.measurements.get(k).skip = true;
             }
         }
     }

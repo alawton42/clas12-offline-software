@@ -371,15 +371,25 @@ public class BMTGeometry {
         double zmax   = Constants.getCRCZMAX()[region-1];
         double angle  = Constants.getCRZPHI()[region-1][sector-1] - Constants.getCRZDPHI()[region-1][sector-1] 
                       + ((double) strip-0.5) * Constants.getCRZWIDTH()[region-1] / Constants.getCRZRADIUS()[region-1];
-        double theLorentzCorrectedAngle = angle + this.LorentzAngleCorr(layer,sector);
-        Point3D p1= new Point3D(radius, 0, zmin);
-        p1.rotateZ(theLorentzCorrectedAngle);
-        Point3D p2= new Point3D(radius, 0, zmax);
-        p2.rotateZ(theLorentzCorrectedAngle);
+//        double theLorentzCorrectedAngle = angle + this.LorentzAngleCorr(layer,sector);
+//        Point3D p1= new Point3D(radius, 0, zmin);
+//        p1.rotateZ(theLorentzCorrectedAngle);
+//        Point3D p2= new Point3D(radius, 0, zmax);
+//        p2.rotateZ(theLorentzCorrectedAngle);
                 
-        Line3D stripline = new Line3D(p1,p2);
+//        Line3D stripline = new Line3D(p1,p2);
+        double alpha = this.getThetaLorentz(layer, sector);    
+        double ralpha = Math.atan2(Constants.gethStrip2Det()*Math.tan(alpha), radius + Constants.gethStrip2Det());
         
-        return stripline;
+        Point3D np1= new Point3D((radius+ Constants.gethStrip2Det()) * Math.cos(ralpha), 
+                (radius+Constants.gethStrip2Det()) * Math.sin(ralpha), zmin);
+        Point3D np2= new Point3D((radius+ Constants.gethStrip2Det()) * Math.cos(ralpha), 
+                (radius+Constants.gethStrip2Det()) * Math.sin(ralpha), zmax);
+        np1.rotateZ(angle);
+        np2.rotateZ(angle); 
+        
+        Line3D nstripline = new Line3D(np1,np2);
+        return nstripline;
     }
     
     /**
@@ -401,7 +411,6 @@ public class BMTGeometry {
         stripline.rotateY(rotation.y());
         stripline.rotateZ(rotation.z());
         stripline.translateXYZ(offset.x(),offset.y(),offset.z());
-                
         
         return stripline;
     }
@@ -760,22 +769,22 @@ public class BMTGeometry {
             if(Math.abs(solenoidScale)<0.8) {
                 thetaL = Math.toRadians(getLorentzAngle(Constants.E_DRIFT_MF[layer-1][sector-1],Math.abs(solenoidScale*50)));
             } else {
-                thetaL = Math.toRadians(getLorentzAngle(E_DRIFT_FF[layer-1][sector-1],Math.abs(solenoidScale*50)));
+                thetaL = Math.toRadians(getLorentzAngle(Constants.E_DRIFT_FF[layer-1][sector-1],Math.abs(solenoidScale*50)));
             }
         }
         if (solenoidScale<0) thetaL=-thetaL; 
         return thetaL;
     }
 
-    /**
-     * Calculate Lorentz angle correction
-     * @param layer
-     * @param sector
-     * @return 
-     */
-    public double LorentzAngleCorr(int layer, int sector) {
-        return (this.getThickness()/2 * Math.tan(this.getThetaLorentz(layer, sector))) / this.getRadius(layer);
-    }
+//    /**
+//     * Calculate Lorentz angle correction
+//     * @param layer
+//     * @param sector
+//     * @return 
+//     */
+//    public double LorentzAngleCorr(int layer, int sector) {
+//        return ((Constants.gethStrip2Det()) * Math.tan(this.getThetaLorentz(layer, sector))) / (this.getRadius(layer));
+//    }
 
 
     /**
@@ -1133,7 +1142,7 @@ public class BMTGeometry {
 //        int num_region = (int) (layer + 1) / 2 - 1; // region index (0...2) 0=layers 1&2, 1=layers 3&4, 2=layers 5&6
 //        //return phi +( Constants.hDrift/2*Math.tan(Constants.getThetaL()) )/Constants.getCRZRADIUS()[num_region];
 //        //return phi + (Constants.hDrift * Math.tan(Constants.getThetaL())) / (Constants.getCRZRADIUS()[num_region]);
-//        return phi + (Constants.hStrip2Det * Math.tan(Constants.getThetaL())) / (Constants.getCRZRADIUS()[num_region]);
+//        return phi + (Constants.gethStrip2Det() * Math.tan(Constants.getThetaL())) / (Constants.getCRZRADIUS()[num_region]);
 //    }
 //    
 //    /**

@@ -397,7 +397,7 @@ public class TrackCandListFinder {
                 //System.err.println("Error in  Track fitting -- track not found -- refit FAILED");
             }
             cand.update_Crosses(cand.get_ray().get_yxslope(), cand.get_ray().get_yxinterc(), svt_geo);
-            
+           
             // eliminate bad residuals
             this.EliminateStraightTrackOutliers(crossesToFit, fitTrk, svt_geo);
             if (crossesToFit.size() < 3) {
@@ -422,18 +422,20 @@ public class TrackCandListFinder {
             // reset the arrays
             RayMeasurements NewMeasArrays = new RayMeasurements(null, null, null, null, null, null, null);
 
-            for (int iter = 0; iter < 11; iter++) {
+            //for (int iter = 0; iter < 11; iter++) {
                 // refit with Micromegas
                 crossesToFitWithBMT.clear();
                 SVTmatches.clear();
                 for (Cross c : cand) {
                     if (c.get_Detector().equalsIgnoreCase("SVT") && c.isInFiducial(svt_geo)) {
-                        SVTmatches.add(c);
+                        SVTmatches.add(c); 
                     }
                 }
                 BMTmatches.clear();
                 BMTmatches = this.matchTrackToMM(BMTCrosses, cand, bmt_geo);
 
+                if(SVTmatches.size()==0) break;
+                    
                 crossesToFitWithBMT.addAll(SVTmatches);
                 crossesToFitWithBMT.addAll(BMTmatches);
 
@@ -441,26 +443,28 @@ public class TrackCandListFinder {
                 fitTrk.fit(NewMeasArrays._X, NewMeasArrays._Y, NewMeasArrays._Z, NewMeasArrays._Y_prime, NewMeasArrays._ErrRt, NewMeasArrays._ErrY_prime, NewMeasArrays._ErrZ);
                 //create the cand
                
-                if (fitTrk.get_ray() != null) {
+                if (fitTrk.get_ray() != null) { 
                     cand = new StraightTrack(fitTrk.get_ray()); 
                     cand.addAll(crossesToFitWithBMT);
                     cand.update_Crosses(cand.get_ray().get_yxslope(), cand.get_ray().get_yxinterc(), svt_geo);
                     //refit not using only BMT to fit the z profile
                     NewMeasArrays = this.get_RayMeasurementsArrays(crossesToFitWithBMT, false, false, false);
                     fitTrk.fit(NewMeasArrays._X, NewMeasArrays._Y, NewMeasArrays._Z, NewMeasArrays._Y_prime, NewMeasArrays._ErrRt, NewMeasArrays._ErrY_prime, NewMeasArrays._ErrZ);
-                    cand = new StraightTrack(fitTrk.get_ray()); 
+                    //cand = new StraightTrack(fitTrk.get_ray()); 
+                    cand.set_ray(fitTrk.get_ray());
                     cand.update_Crosses(cand.get_ray().get_yxslope(), cand.get_ray().get_yxinterc(), svt_geo);
                     cand.set_ndf(NewMeasArrays._Y.size() + NewMeasArrays._Y_prime.size() - 4);
                     double chi2 = cand.calc_straightTrkChi2();
                     cand.set_chi2(chi2);
                     cand.set_Id(cands.size() + 1);
                     crossNbs = new int[cand.size()];
-                    for(int ic = 0; ic < cand.size(); ic++)
+                    for(int ic = 0; ic < cand.size(); ic++) {
                         crossNbs[ic] = cand.get(ic).get_Id();
+                    }
                     candMap.put(crossNbs, cand);
                     
                 }
-            }
+            //}
             candMap.forEach((key,value) -> cands.add(value));
         }
 
@@ -630,7 +634,7 @@ public class TrackCandListFinder {
 
         for (int j = shift + j0; j < shift + j0 + BMTCdetcrossesInTrk.size(); j++) {
             Z.add(j, BMTCdetcrossesInTrk.get(j - shift - j0).get_Point().z());
-            Rho.add(j, org.jlab.rec.cvt.bmt.Constants.getCRCRADIUS()[BMTCdetcrossesInTrk.get(j - shift - j0).get_Region() - 1] + org.jlab.rec.cvt.bmt.Constants.hStrip2Det);
+            Rho.add(j, org.jlab.rec.cvt.bmt.Constants.getCRCRADIUS()[BMTCdetcrossesInTrk.get(j - shift - j0).get_Region() - 1] + org.jlab.rec.cvt.bmt.Constants.gethStrip2Det());
             ErrRho.add(j, 0.01); // check this error on thickness measurement					
             ErrZ.add(j, BMTCdetcrossesInTrk.get(j - shift - j0).get_PointErr().z());
 
@@ -683,7 +687,7 @@ public class TrackCandListFinder {
             }
             if (c.get_Detector().equalsIgnoreCase("BMT")) { // Micromegas
                 if (c.get_DetectorType() == BMTType.C) {//C-detector --> only Z defined
-                    BMTCdetcrossesInTrk.add(c);
+                    BMTCdetcrossesInTrk.add(c); 
                 }
                 if (c.get_DetectorType()==BMTType.Z) {//Z-detector --> only phi defined
                     BMTZdetcrossesInTrk.add(c);
@@ -830,7 +834,7 @@ public class TrackCandListFinder {
 
         ArrayList<Cross> matchedMMCrosses = new ArrayList<Cross>();
 
-        double R = org.jlab.rec.cvt.bmt.Constants.getCRCRADIUS()[Region - 1] + org.jlab.rec.cvt.bmt.Constants.hDrift / 2;		     // R for C detector
+        double R = org.jlab.rec.cvt.bmt.Constants.getCRCRADIUS()[Region - 1] + org.jlab.rec.cvt.bmt.Constants.gethStrip2Det();		     // R for C detector
 
         double sx = ray.get_yxslope();
         double ix = ray.get_yxinterc();
@@ -901,7 +905,7 @@ public class TrackCandListFinder {
 
         ArrayList<Cross> matchedMMCrosses = new ArrayList<Cross>();
 
-        double R = org.jlab.rec.cvt.bmt.Constants.getCRZRADIUS()[Region - 1] + org.jlab.rec.cvt.bmt.Constants.hDrift / 2;		     // R for Z detector
+        double R = org.jlab.rec.cvt.bmt.Constants.getCRZRADIUS()[Region - 1] + org.jlab.rec.cvt.bmt.Constants.gethStrip2Det();		     // R for Z detector
         double sx = ray.get_yxslope();
         double ix = ray.get_yxinterc();
         double sz = ray.get_yzslope();

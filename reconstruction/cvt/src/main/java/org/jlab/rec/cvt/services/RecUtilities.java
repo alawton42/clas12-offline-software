@@ -138,13 +138,16 @@ public class RecUtilities {
                     double y = trkcand.get_Crosses().get(c).get_Point().y();
                     double phi = Math.atan2(y,x);
                     double err = trkcand.get_Crosses().get(c).get_Cluster1().get_PhiErr()
-                            *(org.jlab.rec.cvt.bmt.Constants.getCRZRADIUS()[(trkcand.get_Crosses().get(c).get_Cluster1().get_Layer() + 1) / 2 - 1]+org.jlab.rec.cvt.bmt.Constants.hStrip2Det);
-                    
-                    Strip strp = new Strip(id, ce, x, y, phi);
+                            *(org.jlab.rec.cvt.bmt.Constants.getCRZRADIUS()[(trkcand.get_Crosses().get(c).get_Cluster1().get_Layer() + 1) / 2 - 1]+org.jlab.rec.cvt.bmt.Constants.gethStrip2Det());
+                    Point3D EP1 = trkcand.get_Crosses().get(c).get_Cluster1().getEndPoint1();
+                    Point3D EP2 = trkcand.get_Crosses().get(c).get_Cluster1().getEndPoint2();
+                    //Strip strp = new Strip(id, ce, x, y, phi);
+                    Strip strp = new Strip( id, ce, EP1.x(), EP1.y(), EP1.z(), EP2.x(), EP2.y(), EP2.z());
+                   
                     //cyl.baseArc().setRadius(Math.sqrt(x*x+y*y));
                     //cyl.highArc().setRadius(Math.sqrt(x*x+y*y));
-                    cyl.baseArc().setRadius(org.jlab.rec.cvt.bmt.Constants.getCRZRADIUS()[(trkcand.get_Crosses().get(c).get_Cluster1().get_Layer() + 1) / 2 - 1]+org.jlab.rec.cvt.bmt.Constants.hStrip2Det);
-                    cyl.highArc().setRadius(org.jlab.rec.cvt.bmt.Constants.getCRZRADIUS()[(trkcand.get_Crosses().get(c).get_Cluster1().get_Layer() + 1) / 2 - 1]+org.jlab.rec.cvt.bmt.Constants.hStrip2Det);                   
+                    cyl.baseArc().setRadius(org.jlab.rec.cvt.bmt.Constants.getCRZRADIUS()[(trkcand.get_Crosses().get(c).get_Cluster1().get_Layer() + 1) / 2 - 1]+org.jlab.rec.cvt.bmt.Constants.gethStrip2Det());
+                    cyl.highArc().setRadius(org.jlab.rec.cvt.bmt.Constants.getCRZRADIUS()[(trkcand.get_Crosses().get(c).get_Cluster1().get_Layer() + 1) / 2 - 1]+org.jlab.rec.cvt.bmt.Constants.gethStrip2Det());                   
                     Surface meas = new Surface(cyl, strp);
                     meas.setSector(trkcand.get_Crosses().get(c).get_Sector());
                     meas.setLayer(trkcand.get_Crosses().get(c).get_Cluster1().get_Layer()+6);
@@ -165,8 +168,8 @@ public class RecUtilities {
                     double err = trkcand.get_Crosses().get(c).get_Cluster1().get_ZErr();
                     
                     Strip strp = new Strip(id, ce, z);
-                    cyl.baseArc().setRadius(org.jlab.rec.cvt.bmt.Constants.getCRCRADIUS()[(trkcand.get_Crosses().get(c).get_Cluster1().get_Layer() + 1) / 2 - 1]+org.jlab.rec.cvt.bmt.Constants.hStrip2Det);
-                    cyl.highArc().setRadius(org.jlab.rec.cvt.bmt.Constants.getCRCRADIUS()[(trkcand.get_Crosses().get(c).get_Cluster1().get_Layer() + 1) / 2 - 1]+org.jlab.rec.cvt.bmt.Constants.hStrip2Det);                   
+                    cyl.baseArc().setRadius(org.jlab.rec.cvt.bmt.Constants.getCRCRADIUS()[(trkcand.get_Crosses().get(c).get_Cluster1().get_Layer() + 1) / 2 - 1]+org.jlab.rec.cvt.bmt.Constants.gethStrip2Det());
+                    cyl.highArc().setRadius(org.jlab.rec.cvt.bmt.Constants.getCRCRADIUS()[(trkcand.get_Crosses().get(c).get_Cluster1().get_Layer() + 1) / 2 - 1]+org.jlab.rec.cvt.bmt.Constants.gethStrip2Det());                   
                     Surface meas = new Surface(cyl, strp);
                     meas.setSector(trkcand.get_Crosses().get(c).get_Sector());
                     meas.setLayer(trkcand.get_Crosses().get(c).get_Cluster1().get_Layer()+6);
@@ -303,19 +306,46 @@ public class RecUtilities {
                 trkcand.get_Crosses().get(c).set_Dir(v); 
                 if (trkcand.get_Crosses().get(c).get_DetectorType()==BMTType.Z) {
                     trkcand.get_Crosses().get(c).set_Point(new Point3D(trkcand.get_Crosses().get(c).get_Point().x(),trkcand.get_Crosses().get(c).get_Point().y(),p.z()));
-                    double xc = trkcand.get_Crosses().get(c).get_Point().x();
-                    double yc = trkcand.get_Crosses().get(c).get_Point().y();
-                    double doca2Cls = (Math.atan2(p.y(), p.x())-Math.atan2(yc, xc))*
-                            (org.jlab.rec.cvt.bmt.Constants.getCRZRADIUS()[cluster.get_Region() - 1] 
-                            + org.jlab.rec.cvt.bmt.Constants.hStrip2Det);
-                    cluster.set_CentroidResidual(doca2Cls);
+//                    double xc = trkcand.get_Crosses().get(c).get_Point().x();
+//                    double yc = trkcand.get_Crosses().get(c).get_Point().y();
+//                    double doca2Cls = (Math.atan2(p.y(), p.x())-Math.atan2(yc, xc))*
+//                            (org.jlab.rec.cvt.bmt.Constants.getCRZRADIUS()[cluster.get_Region() - 1] 
+//                            + org.jlab.rec.cvt.bmt.Constants.gethStrip2Det());
+                    
+                    Line3D l = new Line3D(cluster.getEndPoint1(), 
+                                          cluster.getEndPoint2()); 
+                    
+                    //value = l.distance(new Point3D(stateVec.x, stateVec.y, stateVec.z)).length(); 
+                    Line3D WL = new Line3D();
+                    WL.copy(l);
+                    WL.copy(WL.distance(p));
 
+                    double phi = Math.atan2(p.y(), p.x()) + Math.PI;
+                    double phim = Math.atan2(cluster.getEndPoint1().y(),
+                                             cluster.getEndPoint1().x()) + Math.PI;
+
+                    double doca2Cls = WL.length()*Math.signum(phi-phim);
+                    
+                    cluster.set_CentroidResidual(doca2Cls);
+                    
                     for (FittedHit hit : cluster) {
-                        double xh = Math.cos(hit.get_Strip().get_Phi());
-                        double yh = Math.sin(hit.get_Strip().get_Phi());
-                        double doca1 = (Math.atan2(p.y(), p.x())-Math.atan2(yh, xh))*
-                            (org.jlab.rec.cvt.bmt.Constants.getCRZRADIUS()[cluster.get_Region() - 1] 
-                            + org.jlab.rec.cvt.bmt.Constants.hStrip2Det);
+//                        double xh = Math.cos(hit.get_Strip().get_Phi());
+//                        double yh = Math.sin(hit.get_Strip().get_Phi());
+//                        double doca = (Math.atan2(p.y(), p.x())-Math.atan2(yh, xh))*
+//                            (org.jlab.rec.cvt.bmt.Constants.getCRZRADIUS()[cluster.get_Region() - 1] 
+//                            + org.jlab.rec.cvt.bmt.Constants.gethStrip2Det());
+                        
+                        l = new Line3D(hit.get_Strip().get_ImplantPoint(), 
+                                           hit.get_Strip().get_EndPoint());
+                        WL = new Line3D();
+                        WL.copy(l);
+                        WL.copy(WL.distance(p));
+
+                        phi = Math.atan2(p.y(), p.x()) + Math.PI;
+                        phim = Math.atan2(hit.get_Strip().get_ImplantPoint().y(),
+                                             hit.get_Strip().get_ImplantPoint().x()) + Math.PI;
+                       
+                        double doca1 = WL.length()*Math.signum(phi-phim);
                         
                         if(hit.get_Strip().get_Strip()==cluster.get_SeedStrip())
                             cluster.set_SeedResidual(doca1); 

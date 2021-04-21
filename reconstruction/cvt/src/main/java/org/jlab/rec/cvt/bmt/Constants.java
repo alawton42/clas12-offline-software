@@ -9,7 +9,7 @@ public class Constants {
     private Constants() {
 
     }
-
+    public static boolean newClustering = false;
 
     /*
  * The algorithm to describe the geometry of the Barrel Micromegas is provided by Franck Sabatie and implemented into the Java framework.
@@ -68,8 +68,8 @@ public class Constants {
     public static final double SigmaDrift = 0.036; 				// Max transverse diffusion value (GEMC value)
     
     public static final double hDrift = 3.0; 					// Size of the drift gap
-    public static final double hStrip2Det = hDrift / 2;                         // distance between strips and the middle of the conversion gap (~half the drift gap)
-
+    private static double hStrip2Det = hDrift / 2;                              // distance between strips and the middle of the conversion gap (~half the drift gap)
+    
     public static Point3D[][]  shifts    = new Point3D[NLAYERS][NSECTORS];  // detector alignment shifts
     public static Vector3D[][] rotations = new Vector3D[NLAYERS][NSECTORS]; // detector alignment rotations
     public static Line3D[][]   axes = new Line3D[NLAYERS][NSECTORS];        // detector axes
@@ -123,6 +123,17 @@ public class Constants {
 
     }
 
+    /**
+     * @return the gethStrip2Det()
+     */
+    public static double gethStrip2Det() {
+        if(newClustering==true) {
+            //return hStrip2Det/3;
+            return hStrip2Det;
+        } else {
+            return hStrip2Det;
+        }
+    }
     public static double getThetaL() {
         return ThetaL;
     }

@@ -32,7 +32,7 @@ public class CosmicTracksRec {
             List<ArrayList<Cross>> crosses,
             org.jlab.rec.cvt.svt.Geometry SVTGeom, org.jlab.rec.cvt.bmt.BMTGeometry BMTGeom,
             RecoBankWriter rbc,
-            double zShift, boolean exLayrs) {
+            double zShift, boolean exLayrs) { 
         // make list of crosses consistent with a track candidate
         StraightTrackCrossListFinder crossLister = new StraightTrackCrossListFinder();
         CrossList crosslist = crossLister.findCosmicsCandidateCrossLists(crosses, SVTGeom,

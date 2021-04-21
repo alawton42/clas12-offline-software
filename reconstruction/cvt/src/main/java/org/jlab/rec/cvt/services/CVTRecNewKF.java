@@ -74,7 +74,6 @@ public class CVTRecNewKF extends ReconstructionEngine {
         boolean isMC = false;
         boolean isCosmics = false;
         DataBank bank = event.getBank("RUN::config");
-        //System.out.println("EVENTNUM "+bank.getInt("event",0));
         if (bank.getByte("type", 0) == 0) {
             isMC = true;
         }
@@ -352,6 +351,25 @@ public class CVTRecNewKF extends ReconstructionEngine {
         }
         if(exlyrsnb>0)
             exclLayrs = true;
+        
+        //new clustering
+        String newClustering = this.getEngineConfigString("newclustering");
+        
+        if (newClustering!=null) {
+            System.out.println("["+this.getName()+"] run with new clustering settings "+newClustering+" config chosen based on yaml");
+            org.jlab.rec.cvt.bmt.Constants.newClustering= Boolean.valueOf(newClustering);
+        }
+        else {
+            newClustering = System.getenv("COAT_CVT_NEWCLUSTERING");
+            if (newClustering!=null) {
+                System.out.println("["+this.getName()+"] run with new clustering settings "+newClustering+" config chosen based on env");
+                org.jlab.rec.cvt.bmt.Constants.newClustering= Boolean.valueOf(newClustering);
+            }
+        }
+        if (newClustering==null) {
+             System.out.println("["+this.getName()+"] run with newclustering settings default = false");
+        }
+        
         // Load other geometries
         
         variationName = Optional.ofNullable(this.getEngineConfigString("variation")).orElse("default");
