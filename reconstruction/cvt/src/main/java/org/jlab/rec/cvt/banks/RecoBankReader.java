@@ -157,7 +157,7 @@ public class RecoBankReader {
 		}
 	}
 
-	public void fetch_Cosmics(DataEvent event, org.jlab.rec.cvt.svt.Geometry geo, double zShift) {
+	public void fetch_Cosmics(DataEvent event, double zShift) {
 
 		if(_SVTcrosses == null)
 			fetch_SVTCrosses(event, zShift);
@@ -208,8 +208,11 @@ public class RecoBankReader {
 					continue;
 				int crossid = bank.getShort(hitStrg, i);
 				for(Cross cross : _SVTcrosses) {
-					if(cross.get_Id() == crossid)
+					if(cross.get_Id() == crossid) {
 						track.add(cross);
+						continue loopCrossId;
+					}
+					
 				}
 				for(Cross cross : _BMTcrosses) {
 					if(cross.get_Id() == crossid) {
@@ -256,8 +259,13 @@ public class RecoBankReader {
 		float d0s[] = bank.getFloat("d0");
 		float xbs[] = bank.getFloat("xb");
 		float ybs[] = bank.getFloat("yb");
-		float curvatures[] = bank.getFloat("curvature");
-
+		
+		float curvatures[];
+		try {
+			curvatures = bank.getFloat("curvature");
+		}catch(Exception e){
+			curvatures =  new float[ids.length];
+		}
 		
 		 /*bank.setFloat("phi0", i, (float) helix.get_phi_at_dca());
          bank.setFloat("tandip", i, (float) helix.get_tandip());
@@ -292,7 +300,7 @@ public class RecoBankReader {
 				for(Cross cross : _BMTcrosses) {
 					if(cross.get_Id() == crossid) {
 						track.add(cross);
-						break loopCrossId;
+						continue loopCrossId;
 					}
 				}
 			}
