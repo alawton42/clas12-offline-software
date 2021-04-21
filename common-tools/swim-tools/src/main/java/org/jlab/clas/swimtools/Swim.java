@@ -7,7 +7,7 @@ package org.jlab.clas.swimtools;
 
 import cnuphys.rk4.IStopper;
 import cnuphys.rk4.RungeKuttaException;
-import cnuphys.swim.SwimResult;
+import cnuphys.adaptiveSwim.AdaptiveSwimResult;
 import cnuphys.swim.SwimTrajectory;
 import cnuphys.swim.util.Plane;
 import cnuphys.swimZ.SwimZException;
@@ -37,8 +37,8 @@ public class Swim {
 
     final double SWIMZMINMOM = 0.75; // GeV/c
     final double MINTRKMOM = 0.05; // GeV/c
-    double accuracy = 20e-6; // 20 microns
-    double stepSize = 5.00 * 1.e-4; // 500 microns
+    final double accuracy = 20e-6; // 20 microns
+    final double stepSize = 5.00 * 1.e-4; // 500 microns
 
     private ProbeCollection PC;
     
@@ -154,35 +154,6 @@ public class Swim {
                     int charge, double maxPathLength) {
 
         _maxPathLength = maxPathLength;
-        _charge = charge;
-        _phi = phiDeg;
-        _theta = thetaDeg;
-        _pTot = p;
-        _x0 = xcm / 100;
-        _y0 = ycm / 100;
-        _z0 = zcm / 100;
-
-    }
-
-    /**
-     * 
-     * @param xcm
-     * @param ycm
-     * @param zcm
-     * @param phiDeg
-     * @param thetaDeg
-     * @param p
-     * @param charge
-     * @param maxPathLength
-     * @param Accuracy
-     * @param StepSize
-     */
-    public void SetSwimParameters(double xcm, double ycm, double zcm, double phiDeg, double thetaDeg, double p,
-                    int charge, double maxPathLength, double Accuracy, double StepSize) {
-
-        _maxPathLength = maxPathLength;
-         accuracy = Accuracy/100;
-         stepSize = StepSize/100;
         _charge = charge;
         _phi = phiDeg;
         _theta = thetaDeg;
@@ -486,7 +457,7 @@ public class Swim {
 
         try {
         
-            SwimResult result = new SwimResult(6);
+            AdaptiveSwimResult result = new AdaptiveSwimResult(true);
             
             PC.CF.swimRho(_charge, _x0, _y0, _z0, _pTot, _theta, _phi, radius/100, accuracy/10, _rMax, stepSize*10, cnuphys.swim.Swimmer.CLAS_Tolerance, result);
 
