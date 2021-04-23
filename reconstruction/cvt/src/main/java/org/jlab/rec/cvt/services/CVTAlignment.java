@@ -693,8 +693,8 @@ public class CVTAlignment extends ReconstructionEngine {
 		//Z layer
 		if(centroid == org.jlab.rec.cvt.bmt.Constants.getCRZNSTRIPS()[region-1])
 			centroid = org.jlab.rec.cvt.bmt.Constants.getCRZNSTRIPS()[region-1]-.001;
-		Line3d line1 = convertLine(BMTGeom.getZstrip(region, sector, (int)Math.floor(centroid)-1));
-		Line3d line2 = convertLine(BMTGeom.getZstrip(region, sector, (int)Math.floor(centroid)-0)); 
+		Line3d line1 = convertLine(BMTGeom.getZstrip(region, sector, (int)Math.floor(centroid)-0));
+		Line3d line2 = convertLine(BMTGeom.getZstrip(region, sector, (int)Math.floor(centroid)+1)); 
 
 
 
@@ -1087,6 +1087,7 @@ public class CVTAlignment extends ReconstructionEngine {
 		//cp = new HackConstantsProvider(cp);
 		cp = SVTConstants.connect( cp );
 		cp.disconnect();  
+		CCDBConstantsLoader.Load(new DatabaseConstantProvider(11, variationName));
 		xb = org.jlab.rec.cvt.Constants.getXb();
 	    yb = org.jlab.rec.cvt.Constants.getYb();
 		System.out.println("Check SVT Geom lay1 sec1:  " + Arrays.toString(SVTConstants.getLayerSectorAlignmentData()[0][0]));
