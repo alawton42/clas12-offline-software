@@ -75,17 +75,13 @@ public class MeasVecs {
                 this.measurements.get(stateVec.k).surface.type == Type.CYLINDERWITHSTRIP) { 
             if(this.measurements.get(stateVec.k).surface.strip.type == Strip.Type.XYZ) {
                 Line3D l = new Line3D(this.measurements.get(stateVec.k).surface.lineEndPoint1, 
-                this.measurements.get(stateVec.k).surface.lineEndPoint2); 
+                this.measurements.get(stateVec.k).surface.lineEndPoint2);
                 //value = l.distance(new Point3D(stateVec.x, stateVec.y, stateVec.z)).length(); 
                 Line3D WL = new Line3D();
                 WL.copy(l);
                 WL.copy(WL.distance(new Point3D(stateVec.x, stateVec.y, stateVec.z)));
-                
-                double phi = this.getPhi(stateVec.y, stateVec.x);
-                double phim = this.getPhi(this.measurements.get(stateVec.k).surface.lineEndPoint1.y(),this.measurements.get(stateVec.k).surface.lineEndPoint1.x());
-
-                value = WL.length()*Math.signum(phi-phim);
-                
+                double sideStrip = Math.signum(l.direction().y()*WL.direction().x()+l.direction().x()*WL.direction().y());
+                value = WL.length()*sideStrip;
             }
             if(this.measurements.get(stateVec.k).surface.strip.type == Strip.Type.Z) { 
                 value = stateVec.z-this.measurements.get(stateVec.k).surface.strip.getZ();
@@ -196,11 +192,7 @@ public class MeasVecs {
         
         return SVplus;
     }
-
-    private double getPhi(double y, double x) {
-        return Math.atan2(y, x)+Math.PI;
-    }
-    
+     
     public class MeasVec implements Comparable<MeasVec> {
         public Surface surface;
         public int layer    = -1;
